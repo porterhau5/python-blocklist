@@ -6,20 +6,33 @@
 import hashlib
 import urllib2
 
-def compareHashes(hashfile, message):
+def collect_IPs(text):
+    # remove empty lines and commented lines from text
+    #lines = [line for line in text.split('\n') if (line.strip() and not \
+    #        line.startswith('#') and not line[0].isalpha())]
+
+    # grab lines that begin with an IP address
+    lines = [line for line in text.split('\n') if line.strip() and \
+            line[0].isdigit()]
+    for k in lines:
+        print k
+
+# Compare the hash stored in hashfile with the message's hash
+# Currently uses SHA256
+def compare_hashes(hashfile, message):
     hashfile.seek(0)
     oldhash = hashfile.read()
 
     # hashfile is empty
     if oldhash == '':
-        print "oldhash is empty, recreating hash"
+        #print "oldhash is empty, recreating hash"
         # first, try to recreate hash from existing block.txt file
         f = open_file("block.txt", "a+")
         f.seek(0)
         text = f.read()
         # if block.txt is empty too, then we need to create both files
         if text != '':
-            print "block.txt was not empty"
+            #print "block.txt was not empty"
             oldhash = hashlib.sha256(text).hexdigest()
             hashfile.write(oldhash)
         f.close()
@@ -38,7 +51,9 @@ def compareHashes(hashfile, message):
         hashfile.write(newhash)
         hashfile.close()
 
-def downloadList():
+# Download latest block list file from dshield.org
+# Return the content of the file
+def download_list():
     try:
         listfile = urllib2.urlopen("http://feeds.dshield.org/block.txt").read()
     except urllib2.HTTPError, e:
@@ -56,6 +71,8 @@ def downloadList():
     else:
         return listfile
 
+# Try to open file_name in mode
+# If successful, return the opened file descriptor
 def open_file(file_name, mode):
     try:
         the_file = open(file_name, mode)
@@ -66,21 +83,24 @@ def open_file(file_name, mode):
         return the_file
 
 def main():
-    content = downloadList()
+    content = download_list()
     blockhash = open_file("block.sha256", "a+")
     blocklist = open_file("block.txt", "a+")
     blocklist.seek(0)
+
     if blocklist.read() == '':
         blocklist.write(content)
         blocklist.close()
-        compareHashes(blockhash, content)
+        #compare_hashes(blockhash, content)
     else:
         blocklist.close()
-        compareHashes(blockhash, content)
+        compare_hashes(blockhash, content)
         blocklist = open_file("block.txt", "a+")
         blocklist.seek(0)
         blocklist.write(content)
         blocklist.close()
+
+    collect_IPs(content)
 
 if __name__ == '__main__':
     main()
