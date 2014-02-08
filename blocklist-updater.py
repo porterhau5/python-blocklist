@@ -6,16 +6,16 @@
 import hashlib
 import urllib2
 
+# Grab records from the text, write to flat file
 def collect_IPs(text):
-    # remove empty lines and commented lines from text
-    #lines = [line for line in text.split('\n') if (line.strip() and not \
-    #        line.startswith('#') and not line[0].isalpha())]
-
     # grab lines that begin with an IP address
     lines = [line for line in text.split('\n') if line.strip() and \
             line[0].isdigit()]
-    for k in lines:
-        print k
+    # write records to flat file
+    f = open_file("ips.txt", "a+")
+    for record in lines:
+        f.write(str(record.split('\t')) + '\n')
+    f.close()
 
 # Compare the hash stored in hashfile with the message's hash
 # Currently uses SHA256
@@ -91,7 +91,7 @@ def main():
     if blocklist.read() == '':
         blocklist.write(content)
         blocklist.close()
-        #compare_hashes(blockhash, content)
+        compare_hashes(blockhash, content)
     else:
         blocklist.close()
         compare_hashes(blockhash, content)
@@ -107,5 +107,4 @@ if __name__ == '__main__':
 
 # TODO:
 # check for new IPs
-# write new IPs to db
 # sort IPs in db
