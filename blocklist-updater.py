@@ -13,8 +13,14 @@ def collect_IPs(text):
             line[0].isdigit()]
     # write records to flat file
     f = open_file("ips.txt", "a+")
+    f.seek(0)
+    ipcontent = f.read()
     for record in lines:
-        f.write(str(record.split('\t')) + '\n')
+        recordcsv = str(record.split('\t')).strip('[').strip(']')
+        recordcsv = str(recordcsv.split(',')[0:3] + recordcsv.split(',')[4:7]).strip('[').strip(']')
+        recordhash = hashlib.sha256(recordcsv).hexdigest()
+        if recordhash not in ipcontent:
+            f.write(recordhash + ', ' + recordcsv + '\n')
     f.close()
 
 # Compare the hash stored in hashfile with the message's hash
@@ -106,5 +112,6 @@ if __name__ == '__main__':
     main()
 
 # TODO:
+# fix quotes in csv
 # check for new IPs
 # sort IPs in db
